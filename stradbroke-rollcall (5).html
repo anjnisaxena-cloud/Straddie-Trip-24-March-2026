@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Stradbroke Trip — Roll Call</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0efe9;color:#1a1a1a;min-height:100vh;-webkit-text-size-adjust:100%}
+
+/* Passcode screen */
+.lock{position:fixed;inset:0;background:#f0efe9;display:flex;align-items:center;justify-content:center;z-index:999;padding:2rem}
+.lock-box{background:#fff;border-radius:20px;padding:2rem 1.75rem;width:100%;max-width:340px;box-shadow:0 2px 16px rgba(0,0,0,.08);text-align:center}
+.lock-icon{font-size:32px;margin-bottom:1rem}
+.lock-box h2{font-size:18px;font-weight:600;margin-bottom:4px}
+.lock-box p{font-size:13px;color:#999;margin-bottom:1.5rem;line-height:1.5}
+.lock-box input{width:100%;font-size:16px;padding:11px 14px;border:1.5px solid #e0ded8;border-radius:10px;background:#fafaf7;color:#1a1a1a;font-family:inherit;-webkit-appearance:none;outline:none;text-align:center;letter-spacing:.05em;margin-bottom:10px}
+.lock-box input.err{border-color:#f5c0bb;background:#fff8f7}
+.lock-box button{width:100%;font-size:15px;padding:12px;border:none;border-radius:10px;background:#1a1a1a;color:#fff;cursor:pointer;font-family:inherit;font-weight:500;-webkit-appearance:none;-webkit-tap-highlight-color:transparent}
+.lock-err{font-size:13px;color:#c0392b;margin-top:10px;min-height:18px}
+.hidden{display:none!important}
+
+.app{max-width:600px;margin:0 auto;padding:0 1rem 2rem}
+.header{padding:1.125rem 0 0.75rem;border-bottom:1px solid #e5e3dc;margin-bottom:1rem}
+.header h1{font-size:19px;font-weight:600}
+.header p{font-size:13px;color:#999;margin-top:2px}
+
+.tabs{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:1rem}
+.tab{font-size:13px;padding:7px 13px;border-radius:99px;border:1.5px solid #dddbd4;background:#fff;color:#666;cursor:pointer;white-space:nowrap;font-family:inherit;-webkit-tap-highlight-color:transparent;transition:all .15s}
+.tab.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.tab.done{border-color:#a3d9be;color:#2d8a5e;background:#edf7f2}
+.tab.active.done{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+
+.card{background:#fff;border-radius:16px;padding:1.125rem;margin-bottom:.75rem;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:3px}
+.card-title{font-size:17px;font-weight:600;line-height:1.3}
+.badge{font-size:11px;padding:3px 9px;border-radius:99px;flex-shrink:0;margin-top:2px}
+.bf{background:#e8f0fe;color:#1a56db}
+.bh{background:#fef3c7;color:#b45309}
+.bx{background:#f3f4f6;color:#6b7280}
+.desc{font-size:13px;color:#999;margin-bottom:1rem;line-height:1.5}
+
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem}
+.stat{background:#f7f6f1;border-radius:10px;padding:9px 11px}
+.sl{font-size:11px;color:#aaa;margin-bottom:2px;text-transform:uppercase;letter-spacing:.04em}
+.sn{font-size:24px;font-weight:600}
+.sn.g{color:#2d8a5e}.sn.r{color:#c0392b}.sn.b{color:#1a56db}
+
+.controls{display:flex;gap:8px;margin-bottom:.75rem;flex-wrap:wrap;align-items:center}
+input[type=text]{flex:1;min-width:120px;font-size:15px;padding:9px 12px;border:1.5px solid #e0ded8;border-radius:10px;background:#fafaf7;color:#1a1a1a;font-family:inherit;-webkit-appearance:none;outline:none}
+.btn{font-size:13px;padding:9px 14px;border:1.5px solid #e0ded8;border-radius:10px;background:#fff;color:#1a1a1a;cursor:pointer;white-space:nowrap;font-family:inherit;-webkit-appearance:none;-webkit-tap-highlight-color:transparent}
+.bb{color:#1a56db;border-color:#c3d3f8}
+.br{color:#c0392b;border-color:#f5c0bb}
+
+.rows{display:flex;flex-direction:column;gap:5px}
+.row{display:flex;align-items:center;gap:10px;padding:11px 12px;border:1.5px solid #eceae3;border-radius:11px;background:#fafaf7;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .1s,border-color .1s}
+.row.on{background:#edf7f2;border-color:#a3d9be}
+.row.fx{background:#f0f1f3;border-color:#d1d5db}
+.ck{width:24px;height:24px;border-radius:50%;border:1.5px solid #ccc;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;font-weight:700;color:transparent}
+.row.on .ck{background:#2d8a5e;border-color:#2d8a5e;color:#fff}
+.row.fx .ck{background:#6b7280;border-color:#6b7280;color:#fff;font-size:10px}
+.nm{font-size:14px;flex:1;line-height:1.3}
+.row.on .nm{color:#2d8a5e;font-weight:500}
+.row.fx .nm{color:#6b7280}
+.tm{font-size:11px;color:#ccc;flex-shrink:0}
+.row.on .tm{color:#7ec8a4}
+
+.hca{text-align:center;padding:1.75rem 0 1rem}
+.hcn{font-size:80px;font-weight:700;line-height:1;letter-spacing:-3px;color:#1a1a1a}
+.hce{font-size:13px;color:#bbb;margin:8px 0 1.5rem}
+.hcb{display:flex;gap:24px;justify-content:center}
+.hcbtn{width:64px;height:64px;border-radius:50%;border:1.5px solid #e0ded8;background:#fff;font-size:32px;display:flex;align-items:center;justify-content:center;font-family:inherit;cursor:pointer;-webkit-appearance:none;-webkit-tap-highlight-color:transparent}
+.hcs{font-size:14px;margin-top:16px;font-weight:600}
+.ok{color:#2d8a5e}.warn{color:#c0392b}
+
+.done-banner{background:#edf7f2;border:1.5px solid #a3d9be;border-radius:10px;padding:10px 14px;font-size:13px;color:#2d8a5e;font-weight:600;text-align:center;margin-top:.75rem}
+.hint{font-size:12px;color:#bbb;text-align:center;margin-top:10px;line-height:1.6}
+.empty{text-align:center;padding:2rem 1rem;color:#bbb;font-size:14px;line-height:1.7}
+
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99;align-items:flex-end;justify-content:center}
+.overlay.open{display:flex}
+.sheet{background:#fff;border-radius:20px 20px 0 0;padding:1.375rem 1.25rem;width:100%;max-width:600px;padding-bottom:calc(1.375rem + env(safe-area-inset-bottom,16px))}
+.sheet h3{font-size:16px;font-weight:600;margin-bottom:5px}
+.sheet p{font-size:13px;color:#999;margin-bottom:12px;line-height:1.5}
+textarea{width:100%;min-height:110px;font-size:14px;padding:10px 12px;border:1.5px solid #e0ded8;border-radius:10px;background:#fafaf7;color:#1a1a1a;resize:vertical;margin-bottom:10px;font-family:inherit;-webkit-appearance:none;outline:none}
+.sbtns{display:flex;gap:8px;justify-content:flex-end}
+</style>
+</head>
+<body>
+
+<!-- Passcode screen -->
+<div class="lock" id="lockscreen">
+  <div class="lock-box">
+    <div class="lock-icon">&#128274;</div>
+    <h2>Stradbroke Trip</h2>
+    <p>Enter the passcode to access the roll call.</p>
+    <input type="password" id="pc-input" placeholder="Passcode" onkeydown="if(event.key==='Enter')checkPass()">
+    <button onclick="checkPass()">Unlock</button>
+    <div class="lock-err" id="pc-err"></div>
+  </div>
+</div>
+
+<!-- Main app (hidden until unlocked) -->
+<div class="app hidden" id="mainapp">
+  <div class="header">
+    <h1>Stradbroke Trip</h1>
+    <p>Roll call &amp; headcounts</p>
+  </div>
+  <div class="tabs" id="tabs"></div>
+  <div id="content"></div>
+</div>
+
+<!-- Add names modal -->
+<div class="overlay" id="modal-add">
+  <div class="sheet">
+    <h3>Add student names</h3>
+    <p>One name per line. Duplicates will be ignored.</p>
+    <textarea id="ta" placeholder="Jane Smith&#10;Tom Brown"></textarea>
+    <div class="sbtns">
+      <button class="btn" onclick="closeModal('modal-add')">Cancel</button>
+      <button class="btn bb" onclick="addNames()">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- Reset modal -->
+<div class="overlay" id="modal-reset">
+  <div class="sheet">
+    <h3>Reset this checkpoint?</h3>
+    <p>Check-ins for this stop will be cleared. Names stay.</p>
+    <div class="sbtns">
+      <button class="btn" onclick="closeModal('modal-reset')">Cancel</button>
+      <button class="btn br" onclick="doReset()">Reset</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var PASS='AIASStradbroke2026';
+
+function checkPass(){
+  var v=document.getElementById('pc-input').value;
+  var inp=document.getElementById('pc-input');
+  var err=document.getElementById('pc-err');
+  if(v===PASS){
+    document.getElementById('lockscreen').classList.add('hidden');
+    document.getElementById('mainapp').classList.remove('hidden');
+    try{sessionStorage.setItem('unlocked','1');}catch(e){}
+  } else {
+    inp.classList.add('err');
+    err.textContent='Incorrect passcode. Try again.';
+    inp.value='';
+    setTimeout(function(){inp.classList.remove('err');err.textContent='';},2000);
+  }
+}
+
+// Check if already unlocked this session
+try{if(sessionStorage.getItem('unlocked')==='1'){document.getElementById('lockscreen').classList.add('hidden');document.getElementById('mainapp').classList.remove('hidden');}}catch(e){}
+
+var CPS=[
+  {id:'boarding',  label:'Boarding',             type:'ferry',desc:'Tick students as they board the bus at AIAS. Tap twice to mark F for students joining at the Cleveland ferry. Buses leave 7:45am — barge departs 9:30am.'},
+  {id:'dunwich',   label:'Off ferry',             type:'head', desc:'Headcount as everyone disembarks at Dunwich. Make sure no one stayed on the ferry.'},
+  {id:'lookout',   label:'Leaving Lookout Park',  type:'full', desc:'Full name check before departing Point Lookout Park.'},
+  {id:'boardwalk', label:'Leaving Boardwalk',     type:'head', desc:'Headcount before departing the Boardwalk / Gorge Walk.'},
+  {id:'cylinder',  label:'Leaving Beach',         type:'full', desc:'Full name check before departing Cylinder / Deadman\'s Beach.'},
+  {id:'barge',     label:'Boarding return barge', type:'head', desc:'Headcount before boarding the return barge at Dunwich. Departs 5:30pm.'},
+  {id:'return',    label:'Back at Cleveland',     type:'head', desc:'Final headcount off the ferry before getting back on the buses.'}
+];
+
+var NAMES=[
+  "Aaron Joshua Culala","Anjni Saxena","Anilo Jr Emaas","Bethuel Pipingan","Brian Jerry",
+  "Briony Michael","Carolina Duarte","Chamodya Shehani","Charmaine Tagalicud","Christian Casimiro",
+  "Christian Coloso","Clecia Manligoy","David Warrilow","Delia Granada","Diana Igo",
+  "Dinuk Senethma Aaron","Dinushika Karendeniya","Edgerald Edwards","Elinor Whitehead","Erika McGregor",
+  "Eslyn Kambo","Fagae Egene","Felipe Sarria","Francis Sosongan","Georgina Gabriel",
+  "Geraldine Respicio","Gomea Makeva","Hanna Elaine Piquero","Hikaru Tobisawa","Himaya Adriana Hettiarachchi",
+  "Imelda Ambelye","Imelda Karo","Ivan Reis","Jacob Gamoga","Jairus Thomas",
+  "Jerica Saldana","Johara Jenesie Luna","Jonas Redfz Abejar","Jose Darylle Tolentino","Joshua Montes",
+  "Joyce Maliou","Julius Tagavilla","Kate Fiona Guerrero","Leilani Aru","Loren Balderas",
+  "Louise Ricafort","Luke Newey","Makalesi Tuiloma","Marczenne Cabonita","Maria Corbett",
+  "Marina Warrilow","Marrie Ravu","Martin Dai","Mary Grace Solamo","Maxcy Francis",
+  "Maxifred Billy","Meshezabel Taporco","Miriam Ora","Mohammed Ahmed","Nikhil Saxena",
+  "Onithi Talasha Boteju","Pankaj Saxena","Paula Ancajas","Peniel Sakarao","Quilit Dianne Erika Mae",
+  "Ramon Pacheco","Renan Sebben","Reuben Kila","Robby Samson","Sanjay Saxena",
+  "Sarah May Benavente","Sashi Kumar","Shaira Pauline Uy","Sheila Maitland","Simon Masiu",
+  "Simon Mitase","Timothy Kovea","Vitor Schwanke Van-Nyvell","Vivian Tomimisi","Zillah Kari",
+  "Zyryl Kim Yuri Mina"
+];
+
+var S={students:[],cps:{}};
+var active='boarding';
+
+function uid(){return 's'+Math.random().toString(36).slice(2)+Date.now().toString(36);}
+
+function initCps(){
+  for(var i=0;i<CPS.length;i++){
+    var cp=CPS[i];
+    if(!S.cps[cp.id]){
+      S.cps[cp.id]=cp.type==='head'?{count:0}:{checks:{},times:{}};
+    }
+  }
+}
+
+function save(){
+  try{localStorage.setItem('str4',JSON.stringify(S));}catch(e){}
+}
+
+function load(){
+  var loaded=false;
+  try{
+    var r=localStorage.getItem('str4');
+    if(r){var d=JSON.parse(r);if(d&&d.students&&d.students.length){S.students=d.students;S.cps=d.cps||{};loaded=true;}}
+  }catch(e){}
+  if(!loaded){
+    S.students=[];
+    for(var i=0;i<NAMES.length;i++){S.students.push({id:uid(),name:NAMES[i]});}
+    S.cps={};
+  }
+  initCps();
+  renderTabs();
+  renderContent();
+}
+
+function isDone(cp){
+  if(cp.type==='head') return (S.cps[cp.id].count||0)>0;
+  var c=S.cps[cp.id].checks||{};
+  if(!S.students.length) return false;
+  for(var i=0;i<S.students.length;i++){if(!c[S.students[i].id]) return false;}
+  return true;
+}
+
+function renderTabs(){
+  var h='';
+  for(var i=0;i<CPS.length;i++){
+    var cp=CPS[i];var done=isDone(cp);
+    var cls='tab'+(cp.id===active?' active':'')+(done&&cp.id!==active?' done':'');
+    h+='<button class="'+cls+'" onclick="sw(\''+cp.id+'\')">'+cp.label+'</button>';
+  }
+  document.getElementById('tabs').innerHTML=h;
+}
+
+function sw(id){active=id;renderTabs();renderContent();}
+
+function renderContent(){
+  var cp=null;
+  for(var i=0;i<CPS.length;i++){if(CPS[i].id===active){cp=CPS[i];break;}}
+  var cs=S.cps[cp.id];
+  var tl=cp.type==='full'?'Full roll call':cp.type==='ferry'?'Roll call':'Headcount';
+  var bc=cp.type==='full'?'bf':cp.type==='ferry'?'bx':'bh';
+  var inner='';
+
+  if(cp.type==='head'){
+    var cnt=cs.count||0;var exp=S.students.length;var diff=cnt-exp;
+    var st=exp>0?(cnt===exp?'<div class="hcs ok">All '+exp+' accounted for</div>':'<div class="hcs warn">'+Math.abs(diff)+' '+(diff<0?'short':'over')+' &mdash; expected '+exp+'</div>'):'';
+    inner='<div class="hca"><div class="hcn">'+cnt+'</div><div class="hce">Expected: '+(exp||'&mdash;')+'</div>'
+      +'<div class="hcb"><button class="hcbtn" onclick="adj(-1)">&#8722;</button><button class="hcbtn" onclick="adj(1)">+</button></div>'+st+'</div>'
+      +'<div style="text-align:center;margin-top:1.25rem"><button class="btn br" onclick="confirmReset()" style="font-size:12px">Reset count</button></div>';
+  } else {
+    var chk=cs.checks||{};var tms=cs.times||{};
+    var arr=0,fer=0,ks=Object.keys(chk);
+    for(var k=0;k<ks.length;k++){if(chk[ks[k]]===true)arr++;else if(chk[ks[k]]==='F')fer++;}
+    var tot=S.students.length,pres=arr+fer,miss=tot-pres;
+    var sv=document.getElementById('si')?document.getElementById('si').value.toLowerCase():'';
+    var fil=[];for(var j=0;j<S.students.length;j++){if(S.students[j].name.toLowerCase().indexOf(sv)>-1)fil.push(S.students[j]);}
+
+    var stH='<div class="stats"><div class="stat"><div class="sl">Total</div><div class="sn">'+tot+'</div></div>'
+      +(cp.type==='ferry'
+        ?'<div class="stat"><div class="sl">Bus</div><div class="sn g">'+arr+'</div></div><div class="stat"><div class="sl">Ferry +</div><div class="sn b">'+fer+'</div></div>'
+        :'<div class="stat"><div class="sl">Here</div><div class="sn g">'+pres+'</div></div><div class="stat"><div class="sl">Missing</div><div class="sn r">'+miss+'</div></div>')
+      +'</div>';
+
+    var listH='';
+    if(fil.length){
+      for(var m=0;m<fil.length;m++){
+        var s=fil[m],v=chk[s.id],ic=v===true,ix=v==='F';
+        listH+='<div class="row'+(ic?' on':'')+(ix?' fx':'')+'" onclick="tog(\''+s.id+'\')">'
+          +'<div class="ck">'+(ic?'&#10003;':ix?'F':'')+'</div><span class="nm">'+s.name+'</span>'
+          +'<span class="tm">'+(tms[s.id]||'')+'</span></div>';
+      }
+    } else {listH='<div class="empty">No matches.</div>';}
+
+    var addBtn=cp.id==='boarding'?'<button class="btn bb" onclick="openAdd()" style="margin-bottom:.75rem;width:100%">+ Add student names</button>':'';
+    var ferHint=cp.type==='ferry'?'<div class="hint">Tap once = on bus &nbsp;&middot;&nbsp; Tap twice = joining at ferry (F)</div>':'';
+    var doneBanner=miss===0&&tot>0?'<div class="done-banner">All students accounted for</div>':'';
+
+    inner=stH+'<div class="controls"><input type="text" id="si" placeholder="Search student..." oninput="renderContent()">'
+      +'<button class="btn br" onclick="confirmReset()" style="font-size:12px">Reset</button></div>'
+      +addBtn+'<div class="rows">'+listH+'</div>'+ferHint+doneBanner;
+  }
+
+  document.getElementById('content').innerHTML='<div class="card"><div class="card-top"><div class="card-title">'+cp.label+'</div>'
+    +'<span class="badge '+bc+'">'+tl+'</span></div><div class="desc">'+cp.desc+'</div>'+inner+'</div>';
+}
+
+function tog(id){
+  var cp=null;for(var i=0;i<CPS.length;i++){if(CPS[i].id===active){cp=CPS[i];break;}}
+  var chk=S.cps[cp.id].checks;if(!S.cps[cp.id].times)S.cps[cp.id].times={};
+  var tms=S.cps[cp.id].times,cur=chk[id];
+  if(cp.type==='ferry'){chk[id]=cur===true?'F':cur==='F'?false:true;}else{chk[id]=!cur;}
+  if(chk[id])tms[id]=new Date().toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'});
+  else delete tms[id];
+  save();renderTabs();renderContent();
+}
+
+function adj(n){S.cps[active].count=Math.max(0,(S.cps[active].count||0)+n);save();renderTabs();renderContent();}
+function openAdd(){document.getElementById('ta').value='';document.getElementById('modal-add').classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+function addNames(){
+  var lines=document.getElementById('ta').value.split('\n');
+  for(var i=0;i<lines.length;i++){
+    var name=lines[i].trim();if(!name)continue;
+    var ex=false;for(var j=0;j<S.students.length;j++){if(S.students[j].name.toLowerCase()===name.toLowerCase()){ex=true;break;}}
+    if(!ex)S.students.push({id:uid(),name:name});
+  }
+  S.students.sort(function(a,b){return a.name.localeCompare(b.name);});
+  for(var k=0;k<CPS.length;k++){if(CPS[k].type!=='head'){if(!S.cps[CPS[k].id].checks)S.cps[CPS[k].id].checks={};if(!S.cps[CPS[k].id].times)S.cps[CPS[k].id].times={};}}
+  save();closeModal('modal-add');renderTabs();renderContent();
+}
+
+function confirmReset(){document.getElementById('modal-reset').classList.add('open');}
+function doReset(){
+  var cp=null;for(var i=0;i<CPS.length;i++){if(CPS[i].id===active){cp=CPS[i];break;}}
+  if(cp.type==='head'){S.cps[cp.id].count=0;}else{S.cps[cp.id].checks={};S.cps[cp.id].times={};}
+  save();closeModal('modal-reset');renderTabs();renderContent();
+}
+
+load();
+</script>
+</body>
+</html>
